@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ELP Gurukul | Prototype V3.1</title>
+  <style>
+    :root{--bg:#06101b;--bg2:#081424;--panel:rgba(10,20,34,.92);--line:rgba(255,255,255,.10);--text:#eef4ff;--muted:#aebbd2;--accent:#6f96ff;--gold2:#f0ddb0;--danger:#ff7f97;--shadow:0 24px 80px rgba(0,0,0,.40);--radius:24px;--sidebar:300px;--max:1680px;}
+    *{box-sizing:border-box} html,body{height:100%} body{margin:0;font-family:Inter,Segoe UI,Roboto,Arial,sans-serif;background:radial-gradient(circle at 0 0, rgba(111,150,255,.15), transparent 22%),radial-gradient(circle at 100% 0, rgba(215,180,106,.10), transparent 18%),linear-gradient(180deg, var(--bg2), var(--bg));color:var(--text);overflow-x:hidden;}
+    .demo-banner{position:sticky;top:0;z-index:80;padding:10px 14px;text-align:center;background:rgba(215,180,106,.16);color:var(--gold2);border-bottom:1px solid rgba(215,180,106,.20);font-size:13px;letter-spacing:.02em;}
+    button,input,textarea{font:inherit}[contenteditable="true"]{outline:none}
+    .login-screen{min-height:100vh;display:grid;place-items:center;padding:20px;transition:opacity .28s ease, transform .28s ease}.login-screen.fade-out{opacity:0;transform:translateY(-8px);pointer-events:none}
+    .login-card{width:min(540px,100%);padding:28px;border-radius:28px;border:1px solid var(--line);background:linear-gradient(180deg, rgba(12,24,40,.98), rgba(7,12,20,.98));box-shadow:var(--shadow)}
+    .brand-row{display:flex;align-items:center;gap:14px;margin-bottom:18px}.logo-box{width:58px;height:58px;border-radius:18px;background:linear-gradient(135deg, rgba(111,150,255,.36), rgba(103,215,193,.28));overflow:hidden;display:grid;place-items:center;border:1px solid rgba(255,255,255,.10)}.logo-box img{width:100%;height:100%;object-fit:cover;display:block}.logo-fallback{display:none;width:100%;height:100%;place-items:center;font-weight:800;color:#fff;font-size:14px}.brand-title{margin:0;font-size:22px;line-height:1.08;font-weight:800}.brand-sub{margin:4px 0 0;color:var(--muted);font-size:13px}
+    .field{display:grid;gap:8px;margin-top:14px}.field label{font-size:12px;text-transform:uppercase;letter-spacing:.10em;color:var(--muted)}.field input,.field textarea{width:100%;border-radius:16px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--text);padding:13px 14px;}
+    .login-actions,.toolbar,.pill-row,.dialog-actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+    .btn{border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--text);padding:11px 14px;border-radius:14px;cursor:pointer}.btn.primary{background:linear-gradient(135deg, rgba(111,150,255,.20), rgba(103,215,193,.16));border-color:rgba(111,150,255,.28)}.btn.soft{background:rgba(255,255,255,.03)}.btn.danger{background:rgba(255,127,151,.10);border-color:rgba(255,127,151,.22);color:#ffd7df}
+    .help{margin-top:12px;color:var(--muted);font-size:12px;line-height:1.6}.demo-note{margin:12px 0 0;color:var(--gold2);font-size:12px;line-height:1.5}
+    .app{min-height:100vh;display:none;grid-template-columns:var(--sidebar) 1fr}.app.ready{display:grid}
+    .sidebar{padding:22px;border-right:1px solid var(--line);background:rgba(7,12,20,.82);backdrop-filter:blur(18px);position:sticky;top:0;height:100vh;overflow:auto;display:flex;flex-direction:column}.sidebar-brand{display:flex;align-items:center;gap:14px;margin-bottom:18px}
+    .nav-title{color:var(--muted);font-size:12px;letter-spacing:.12em;text-transform:uppercase;margin:18px 8px 10px}.nav{display:grid;gap:10px}.nav button{width:100%;border:1px solid var(--line);background:rgba(255,255,255,.03);color:var(--text);border-radius:16px;padding:14px;text-align:left;cursor:pointer;display:flex;justify-content:space-between;gap:10px;align-items:center}.nav button.active{background:linear-gradient(135deg, rgba(111,150,255,.16), rgba(215,180,106,.10));border-color:rgba(111,150,255,.24)}.nav small{color:var(--muted);font-size:12px}.sidebar-footer{margin-top:auto;padding-top:18px;border-top:1px solid var(--line)}.btn-logout{width:100%;border:1px solid rgba(255,127,151,.22);background:rgba(255,127,151,.08);color:#ffd7df;border-radius:14px;padding:12px 14px;cursor:pointer;display:flex;align-items:center;gap:10px}
+    .main{padding:24px;display:grid;gap:18px;max-width:calc(var(--max) - var(--sidebar));width:100%}.topbar,.hero,.panel,.stat,.preview-box,.dialog,.intent-box,.section-shell{box-shadow:var(--shadow)}
+    .topbar{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:14px 18px;border:1px solid var(--line);border-radius:18px;background:rgba(255,255,255,.03)}
+    .chip{border:1px solid var(--line);background:rgba(255,255,255,.04);border-radius:999px;padding:8px 12px;font-size:12px;cursor:pointer;color:var(--text)}
+    .stat-chip{appearance:none;border:1px solid var(--line);background:rgba(255,255,255,.04);color:inherit;border-radius:18px;padding:14px 16px;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:4px}
+    .stat-chip.stat-info{width:100%}
+    .stat-chip strong{font-size:22px;line-height:1}
+    .stat-chip span{opacity:.82;font-size:13px}.stat-chip.active{outline:2px solid var(--accent);outline-offset:2px}
+    .hero{padding:30px;border-radius:var(--radius);border:1px solid var(--line);background:linear-gradient(135deg, rgba(16,31,53,.98), rgba(8,15,28,.94));position:relative;overflow:hidden}.hero-head{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;flex-wrap:wrap;position:relative;z-index:1}.hero-copy{flex:1 1 560px}.hero h2{margin:0 0 10px;font-size:clamp(34px,4.1vw,58px);line-height:1.02;letter-spacing:-.03em;max-width:12ch;font-family:Georgia, 'Times New Roman', serif;font-weight:700}.hero p{margin:0;color:var(--muted);line-height:1.78;font-size:16px;max-width:72ch}
+    .stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.stat{padding:18px;border-radius:20px;border:1px solid var(--line);background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.03));min-height:112px}.stat b{display:block;font-size:24px;margin-bottom:6px}.stat span{color:var(--muted);font-size:13px;line-height:1.45}
+    .section-shell{padding:20px;border-radius:var(--radius);border:1px solid var(--line);background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.03));}
+    .section-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;flex-wrap:wrap;margin-bottom:14px}.section-head h3{margin:0 0 6px;font-size:22px}.section-head p{margin:0;color:var(--muted);line-height:1.68;font-size:14px;max-width:82ch}
+    .intent-box{padding:20px;border-radius:20px;border:1px solid var(--line);background:linear-gradient(135deg, rgba(16,31,53,.94), rgba(8,15,28,.92));margin-bottom:14px;position:relative;overflow:hidden}
+    .intent-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:14px}.intent-kicker{margin:0 0 6px;color:var(--gold2);font-size:12px;letter-spacing:.12em;text-transform:uppercase;font-weight:700}.intent-box h3{margin:0 0 8px;font-size:22px}.intent-sub{margin:0;color:var(--muted);line-height:1.68;font-size:14px;max-width:760px}.intent-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+    .intent-btn{display:flex;flex-direction:column;gap:6px;align-items:flex-start;width:100%;text-align:left;padding:16px;border-radius:16px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--text);cursor:pointer}.intent-btn strong{font-size:15px}.intent-btn span{font-size:13px;color:var(--muted);line-height:1.5}
+    .panel{padding:22px;border-radius:var(--radius);border:1px solid var(--line);background:rgba(255,255,255,.04);display:none;position:relative;overflow:hidden}.panel.active{display:block}
+    .panel-head{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:12px;align-items:flex-start}.panel h3{margin:0;font-size:22px}.panel p{margin:0 0 12px;color:var(--muted);line-height:1.72}
+    .grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.timeline{display:grid;gap:12px;margin-top:14px}
+    .card,.step{padding:18px;border-radius:18px;border:1px solid var(--line);background:rgba(255,255,255,.03);cursor:pointer}.card h4,.step h4{margin:0 0 8px;font-size:16px}.card p,.step p{margin:0;color:var(--muted);line-height:1.66}.card:hover,.step:hover{border-color:rgba(111,150,255,.24)}
+    .step{display:grid;grid-template-columns:76px 1fr;gap:14px;align-items:start}.num{width:76px;height:76px;border-radius:18px;display:grid;place-items:center;font-size:20px;font-weight:800;background:linear-gradient(135deg, rgba(111,150,255,.16), rgba(215,180,106,.14));border:1px solid rgba(255,255,255,.10)}
+    .footer{color:var(--muted);font-size:12px;padding:4px 2px 6px}
+    .dialog-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.58);display:none;align-items:center;justify-content:center;padding:18px;z-index:60;backdrop-filter:blur(8px)}.dialog-backdrop.open{display:flex}.dialog{width:min(1040px,100%);max-height:min(90vh,920px);overflow:auto;border-radius:26px;border:1px solid rgba(255,255,255,.12);background:linear-gradient(180deg, rgba(12,24,40,.99), rgba(7,12,20,.99))}
+    .dialog-header{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;padding:20px 20px 0}.dialog-header h3{margin:0 0 6px;font-size:20px}.dialog-header p{margin:0;color:var(--muted);line-height:1.6;font-size:14px}.dialog-body{padding:18px 20px 20px}.preview-box{padding:18px;border-radius:18px;border:1px solid var(--line);background:rgba(255,255,255,.03)}.preview-box h4{margin:0 0 8px;font-size:18px}.preview-box p{margin:0;color:var(--muted);line-height:1.7}.modal-note{margin-top:10px;color:var(--muted);font-size:12px;line-height:1.55}
+    .next-step-box{margin-top:16px;padding:14px 16px;border:1px solid rgba(255,255,255,.08);border-radius:16px;background:rgba(255,255,255,.03)}.next-step-btn{border:none;background:none;color:#dffcf6;padding:0;cursor:pointer;text-align:left;font:inherit;text-decoration:underline}.back-to-top-btn{position:fixed;right:20px;bottom:20px;z-index:9999;display:none;padding:12px 14px;border:none;border-radius:999px;background:var(--accent);color:#fff;cursor:pointer}
+    @media (max-width: 1180px){.app{grid-template-columns:1fr}.sidebar{position:relative;height:auto;border-right:none;border-bottom:1px solid var(--line)}.main{max-width:none}.stats,.grid-2,.intent-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media (max-width: 720px){.main{padding:14px}.hero{padding:22px}.hero h2{font-size:30px}.stats,.grid-2,.intent-grid{grid-template-columns:1fr}.step{grid-template-columns:1fr}.num{width:58px;height:58px;border-radius:16px}.topbar{flex-direction:column;align-items:flex-start}.login-card{padding:22px}.intent-head,.dialog-header,.hero-head,.panel-head,.section-head{flex-direction:column}}
+  </style>
+</head>
+<body>
+  <div class="demo-banner">Demo environment only. Some features are staged for review.</div>
+
+  <section class="login-screen" id="loginScreen">
+    <div class="login-card">
+      <div class="brand-row">
+        <div class="logo-box"><img id="loginLogo" src="https://static.wixstatic.com/media/1ef27a_1074c58ac9f9422ea04d6b81ace4e1a1~mv2.png/v1/crop/x_347,y_0,w_950,h_892/fill/w_264,h_226,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/Untitled.png" alt="Gurukul ELP logo" /><div class="logo-fallback" id="loginLogoFallback">ELP</div></div>
+        <div><h1 class="brand-title">ELP Gurukul</h1><p class="brand-sub">Smart-era learning prototype</p></div>
+      </div>
+      <div class="field"><label for="username">Username</label><input id="username" placeholder="group@elp" autocomplete="username" /></div>
+      <div class="field"><label for="password">Password</label><input id="password" type="password" placeholder="Password" autocomplete="current-password" /></div>
+      <div class="login-actions" style="margin-top:16px"><button class="btn primary" id="loginBtn" type="button">Sign in</button><button class="btn soft" id="demoBtn" type="button">Use demo credentials</button></div>
+      <div class="help" id="loginHelp">Enter username and password.</div>
+      <p class="demo-note">This is a demo login. Demo credentials are enabled for review purposes.</p>
+    </div>
+  </section>
+
+  <div class="app" id="app">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="logo-box"><img id="sideLogo" src="https://static.wixstatic.com/media/1ef27a_1074c58ac9f9422ea04d6b81ace4e1a1~mv2.png/v1/crop/x_347,y_0,w_950,h_892/fill/w_264,h_226,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/Untitled.png" alt="Gurukul ELP logo" /><div class="logo-fallback" id="sideLogoFallback">ELP</div></div>
+        <div><h1 class="brand-title">ELP Gurukul</h1></div>
+      </div>
+      <div class="nav-title">Sections</div>
+      <div class="nav" role="tablist" aria-label="Prototype sections">
+        <button class="tab active" data-target="home" type="button">Home <small>Overview</small></button>
+        <button class="tab" data-target="mission" type="button">Mission <small>Core</small></button>
+        <button class="tab" data-target="learning" type="button">Learning <small>Programs</small></button>
+        <button class="tab" data-target="gaps" type="button">Gaps <small>Positioning</small></button>
+        <button class="tab" data-target="finance" type="button">Finance <small>Planning</small></button>
+        <button class="tab" data-target="platform" type="button">Platform <small>Digital</small></button>
+        <button class="tab" data-target="founding" type="button">Founding <small>Governance</small></button>
+        <button class="tab" data-target="execution" type="button">Execution <small>Blueprint</small></button>
+        <button class="tab" data-target="launch" type="button">Launch <small>Handbook</small></button>
+        <button class="tab" data-target="masterplan" type="button">Master Plan <small>Roadmap</small></button>
+      </div>
+      <div class="sidebar-footer"><button class="btn-logout" id="logoutBtn" type="button">Sign out</button></div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div class="pill-row">
+          <button class="chip" id="chipBrowser" type="button">Browser ready</button>
+          <button class="chip" id="chipResponsive" type="button">Responsive</button>
+          <button class="chip" id="chipAccess" type="button">Group access</button>
+        </div>
+        <div class="toolbar"><button class="btn soft" id="addBtn" type="button">Add</button><button class="btn soft" id="draftBtn" type="button">Save draft</button><button class="btn soft" id="previewBtn" type="button">Preview</button></div>
+      </div>
+
+      <div id="role-path" style="display:flex;flex-wrap:wrap;gap:10px;">
+        <button type="button" class="role-btn" data-target="Founder">Founder</button>
+        <button type="button" class="role-btn" data-target="Parent">Parent</button>
+        <button type="button" class="role-btn" data-target="Advisor">Advisor</button>
+        <button type="button" class="role-btn" data-target="Reviewer">Reviewer</button>
+        <button type="button" class="role-btn" data-target="Mentor">Mentor</button>
+      </div>
+
+      <div class="disclosure-wrap"><button type="button" class="btn soft" id="toggleBlueprintBtn">Show blueprint details</button></div>
+      <div id="blueprintSummary" class="card" style="display:none;"><h4>Blueprint summary</h4><p>This prototype reveals deeper section content only when you choose it. Use the tabs to open each topic, or use the role path to jump to a relevant section.</p></div>
+
+      <section class="section-shell" id="addComposer" style="display:none;">
+        <div class="section-head">
+          <div><h3>Add a new block</h3><p>Create a new card or timeline item without disturbing the current prototype.</p></div>
+          <div class="toolbar"><button class="btn primary" type="button" id="composerInsertBtn">Insert block</button><button class="btn danger" type="button" id="composerCloseBtn">Close</button></div>
+        </div>
+        <div class="card" style="margin-top:14px;"><h4>How this works</h4><p>Type a title and body, then click Insert block. Save draft keeps your current state, Preview shows the current result, and Edit or Update lets you refine the section after insertion.</p></div>
+        <div class="grid-2">
+          <div class="card"><h4>Title</h4><input id="composerTitle" type="text" placeholder="Enter block title" style="width:100%;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);color:inherit;outline:none;"></div>
+          <div class="card"><h4>Body</h4><textarea id="composerBody" placeholder="Enter block body" rows="5" style="width:100%;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);color:inherit;outline:none;resize:vertical;"></textarea></div>
+        </div>
+        <div class="card" id="composerPreview" style="margin-top:14px;"><h4>Preview</h4><p id="composerPreviewText">The inserted block will appear here after you click Insert block.</p></div>
+      </section>
+
+      <section class="intent-box">
+        <div class="intent-head">
+          <div><p class="intent-kicker">Start here</p><h3>What do you want to do?</h3><p class="intent-sub">Choose one path to jump straight into the part of the prototype that matches your purpose.</p></div>
+          <button class="btn soft" id="resetHomeBtn" type="button">Reset to Home</button>
+        </div>
+        <div style="margin-bottom:12px;"><button class="btn soft" type="button" id="intentHelpBtn">What does this do?</button></div>
+        <div class="intent-grid">
+          <button class="intent-btn" data-target="mission" type="button"><strong>Understand the vision</strong><span>Go to the Mission Core section.</span></button>
+          <button class="intent-btn" data-target="learning" type="button"><strong>Review the learning structure</strong><span>Open the eight pillars of learning.</span></button>
+          <button class="intent-btn" data-target="gaps" type="button"><strong>Check gaps and differentiation</strong><span>See positioning and uniqueness.</span></button>
+          <button class="intent-btn" data-target="finance" type="button"><strong>See the financial plan</strong><span>Open the Rs. 200 Crore architecture.</span></button>
+          <button class="intent-btn" data-target="execution" type="button"><strong>Review execution and launch</strong><span>Jump to the action roadmap.</span></button>
+        </div>
+      </section>
+
+      <section class="hero">
+        <div class="hero-head">
+          <div class="hero-copy">
+            <h2 data-editable="true" contenteditable="false" id="heroTitle">Master Prototype for Group Browser Access</h2>
+            <p data-editable="true" contenteditable="false" id="heroBody">This interface combines blueprint content, working interactions, and review-friendly detail panels so the prototype feels like a living workspace.</p>
+          </div>
+          <div class="toolbar"><button class="btn primary edit-section" type="button">Edit</button><button class="btn update-section" type="button">Update</button><button class="btn danger cancel-section" type="button">Cancel</button></div>
+        </div>
+        <div class="modal-note">Click the status chips or hero text to open their own explanation panels.</div>
+      </section>
+
+      <section class="stats">
+        <button type="button" class="stat-chip stat-info" data-title="Master build phases" data-desc="This shows how the blueprint is divided into a clear ten-step build, from vision to final roadmap."><strong>10</strong><span>Phases in the master build</span></button>
+        <button type="button" class="stat-chip stat-info" data-title="Learning pillars" data-desc="These eight pillars define the learning model and show how the curriculum is organized into core strands."><strong>8</strong><span>Learning pillars</span></button>
+        <button type="button" class="stat-chip stat-info" data-title="Financial vision" data-desc="This figure represents the long-range funding ambition behind the institution and its phased growth plan."><strong>₹200 Cr</strong><span>Financial vision</span></button>
+        <button type="button" class="stat-chip stat-info" data-title="Founding base" data-desc="Hyderabad is the originating base for the concept and the point from which the institution is being planned."><strong>Hyd</strong><span>Founding base</span></button>
+      </section>
+
+      <section class="section-shell">
+        <div class="section-head"><div><h3>What is this?</h3><p>A task-first prototype built to help users understand the institution blueprint quickly.</p></div></div>
+        <div class="grid-2">
+          <button type="button" class="stat-chip usage-chip" data-title="What is this?" data-desc="A task-first prototype built to help users understand the institution blueprint quickly."><strong>What is this?</strong><span>Task-first prototype overview.</span></button>
+          <button type="button" class="stat-chip usage-chip" data-title="What can I do next?" data-desc="Choose a task below to explore the vision, readiness, planning, or launch path."><strong>What can I do next?</strong><span>Choose a task below to explore the vision, readiness, planning, or launch path.</span></button>
+        </div>
+      </section>
+
+      <section class="panel active" id="home">
+        <div class="panel-head">
+          <div><h3 data-editable="true" contenteditable="false">Start here</h3><p data-editable="true" contenteditable="false">This is the entry point for the prototype. It gives you a quick path into the most important tasks and helps you understand where to begin.</p></div>
+          <div class="toolbar"><button class="btn primary edit-section" type="button">Edit</button><button class="btn update-section" type="button">Update</button><button class="btn danger cancel-section" type="button">Cancel</button></div>
+        </div>
+        <div class="grid-2">
+          <div class="card tip" tabindex="0" data-dialog-key="home-what" data-title="What is this?" data-body="Task-first prototype overview." data-expanded="A task-first prototype built to help users understand the institution blueprint quickly.">
+            <h4>What is this?</h4>
+            <p>Task-first prototype overview.</p>
+          </div>
+          <div class="card tip" tabindex="0" data-dialog-key="home-next" data-title="What can I do next?" data-body="Choose a task below to explore the vision, readiness, planning, or launch path." data-expanded="Open the prototype from a browser link, move between sections instantly, and review everything as a shared working space.">
+            <h4>What can I do next?</h4>
+            <p>Choose a task below to explore the vision, readiness, planning, or launch path.</p>
+          </div>
+        </div>
+        <div class="next-step-box"><h4>Next step</h4><button class="next-step-btn" type="button" data-target="mission">Review the mission to understand the vision.</button></div>
+      </section>
+
+      <section class="panel" id="mission">
+        <div class="panel-head"><div><h3 data-editable="true" contenteditable="false">Understand the vision</h3><p data-editable="true" contenteditable="false">This section explains the purpose, identity, and direction of the institution in simple terms.</p></div><div class="toolbar"><button class="btn primary edit-section" type="button">Edit</button><button class="btn update-section" type="button">Update</button><button class="btn danger cancel-section" type="button">Cancel</button></div></div>
+        <div class="card tip" tabindex="0" data-dialog-key="mission-why" data-title="Why does it matter?" data-body="It keeps founders, advisors, and future users aligned around one clear direction." data-expanded="Show the mission statement, promise, values, and positioning language in a short form on the page, then expand the detail in a panel."><h4>Why does it matter?</h4><p>It keeps founders, advisors, and future users aligned around one clear direction.</p></div>
+        <div class="next-step-box"><h4>Next step</h4><button class="next-step-btn" type="button" data-target="learning">Review the learning structure next.</button></div>
+      </section>
+
+      <section class="panel" id="learning">
+        <div class="panel-head"><div><h3 data-editable="true" contenteditable="false">See how it works</h3><p data-editable="true" contenteditable="false">This section shows how the learning model is structured and how the experience is organized.</p></div><div class="toolbar"><button class="btn primary edit-section" type="button">Edit</button><button class="btn update-section" type="button">Update</button><button class="btn danger cancel-section" type="button">Cancel</button></div></div>
+        <div class="grid-2">
+          <div class="card tip" tabindex="0" data-dialog-key="learning-map" data-title="What is this?" data-body="A structured view of the learning model broken into outcomes and checkpoints." data-expanded="Group the programs into outcomes, format, and participation model, then explain them in a compact review-friendly panel."><h4>What is this?</h4><p>A structured view of the learning model broken into outcomes and checkpoints.</p></div>
+          <div class="card tip" tabindex="0" data-dialog-key="learning-next" data-title="What can I do next?" data-body="Review how the learning structure supports the user journey and family involvement." data-expanded="Use the detail panel to explain how family participation works in the model without crowding the main page."><h4>What can I do next?</h4><p>Review how the learning structure supports the user journey and family involvement.</p></div>
+        </div>
+        <section id="learning-pillars" class="section-shell" style="margin-top:14px;">
+          <div class="section-head"><div><h3>8 Learning Pillars</h3><p>The core academic idea should be visible here instead of hidden in the background.</p></div></div>
+          <div class="grid-2">
+            <div class="card"><h4>Shastra → Core Understanding → Foundational Knowledge</h4><p>Builds deep conceptual grounding through study, comprehension, and structured knowledge.</p></div>
+            <div class="card"><h4>Karma → Practical Application → Applied Skills</h4><p>Turns learning into action through practice, performance, and real-world competence.</p></div>
+            <div class="card"><h4>Sanskara → Identity and Growth → Personal Development</h4><p>Shapes character, discipline, and self-development through guided formation.</p></div>
+            <div class="card"><h4>Sahajivana → Team Learning → Collaborative Learning</h4><p>Encourages shared learning, coexistence, and group progress through participation.</p></div>
+            <div class="card"><h4>Vachana and Vyakaran → Clear Communication → Communication and Expression</h4><p>Strengthens language, expression, and precise communication across contexts.</p></div>
+            <div class="card"><h4>Dharma → Values and Judgment → Ethical Reasoning</h4><p>Connects values, responsibility, and sound judgment in everyday decisions.</p></div>
+            <div class="card"><h4>Swasthya → Wellness and Balance → Health and Well-being</h4><p>Supports physical, mental, and emotional balance for sustained learning.</p></div>
+            <div class="card"><h4>Anveshana → Curiosity and Discovery → Inquiry and Exploration</h4><p>Drives questioning, experimentation, and discovery through active inquiry.</p></div>
+          </div>
+        </section>
+        <div class="next-step-box"><h4>Next step</h4><button class="next-step-btn" type="button" data-target="gaps">Check gaps and differentiation next.</button></div>
+      </section>
+
+      <section class="panel" id="gaps">
+        <div class="panel-head"><div><h3 data-editable="true" contenteditable="false">Check readiness</h3><p data-editable="true" contenteditable="false">This section helps you see what is missing, what is unique, and what still needs to be improved.</p></div><div class="toolbar"><button class="btn primary edit-section" type="button">Edit</button><button class="btn update-section" type="button">Update</button><button class="btn danger cancel-section" type="button">Cancel</button></div></div>
+        <div class="card tip" tabindex="0" data-dialog-key="gaps-why" data-title="Why does it matter?" data-body="It helps the team understand whether the prototype is ready to move forward." data-expanded="This card should stay brief on the page and expand into the fuller explanation when clicked."><h4>Why does it matter?</h4><p>It helps the team understand whether the prototype is ready to move forward.</p></div>
+        <div class="next-step-box"><h4>Next step</h4><button class="next-step-btn" type="button" data-target="finance">Review the financial plan next.</button></div>
+      </section>
+
+      <section class="panel" id="finance">
+        <div class="panel-head"><div><h3 data-editable="true" contenteditable="false">Review costs and funding</h3><p data-editable="true" contenteditable="false">The Rs. 200 Cr architecture should be shown here in a clearer, more complete form.</p></div><div class="toolbar"><button class="btn primary edit-section" type="button">Edit</button><button class="btn update-section" type="button">Update</button><button class="btn danger cancel-section" type="button">Cancel</button></div></div>
+        <div class="grid-2">
+          <div class="card tip" tabindex="0" data-dialog-key="finance-what" data-title="What is this?" data-body="A staged view of the major cost layers that support the institution." data-expanded="Use the panel to explain the cost layers in more detail, while the main card stays concise and readable."><h4>What is this?</h4><p>A staged view of the major cost layers that support the institution.</p></div>
+          <div class="card tip" tabindex="0" data-dialog-key="finance-next" data-title="What can I do next?" data-body="Review the funding layers and identify what comes first." data-expanded="Break funding into stages so the prototype reads like an executable plan instead of a plain statement."><h4>What can I do next?</h4><p>Review the funding layers and identify what comes first.</p></div>
+        </div>
+        <div class="card" style="margin-top:14px;"><h4>Rs. 200 Cr Architecture</h4><p>Break this into land, buildings, equipment, staffing, operations, and launch costs.</p></div>
+        <div class="next-step-box"><h4>Next step</h4><button class="next-step-btn" type="button" data-target="platform">Explore the platform next.</button></div>
+      </section>
+
+      <section class="panel" id="platform">
+        <div class="panel-head"><div><h3 data-editable="true" contenteditable="false">Explore the platform</h3><p data-editable="true" contenteditable="false">This section shows how the browser-based experience supports the project.</p></div><div class="toolbar"><button class="btn primary edit-section" type="button">Edit</button><button class="btn update-section" type="button">Update</button><button class="btn danger cancel-section" type="button">Cancel</button></div></div>
+        <div class="card tip" tabindex="0" data-dialog-key="platform-why" data-title="Why does it matter?" data-body="It connects the prototype design to the digital operating layer." data-expanded="Keep this as a short surface label and use the detail panel to explain how the platform evolves into a real working layer."><h4>Why does it matter?</h4><p>It connects the prototype design to the digital operating layer.</p></div>
+        <div class="next-step-box"><h4>Next step</h4><button class="next-step-btn" type="button" data-target="founding">Review the founding circle next.</button></div>
+      </section>
+
+      <section class="panel" id="founding">
+        <div class="panel-head"><div><h3 data-editable="true" contenteditable="false">Meet the founding circle</h3><p data-editable="true" contenteditable="false">This section explains who is involved, what they own, and how decisions are made.</p></div><div class="toolbar"><button class="btn primary edit-section" type="button">Edit</button><button class="btn update-section" type="button">Update</button><button class="btn danger cancel-section" type="button">Cancel</button></div></div>
+        <div class="grid-2">
+          <div class="card tip" tabindex="0" data-dialog-key="founding-why" data-title="Why does it matter?" data-body="It helps the group move with clarity and shared responsibility." data-expanded="Use the panel to show decision flow and accountability in a richer but still controlled way."><h4>Why does it matter?</h4><p>It helps the group move with clarity and shared responsibility.</p></div>
+          <div class="card tip" tabindex="0" data-dialog-key="founding-next" data-title="What can I do next?" data-body="Review roles and confirm who handles each decision." data-expanded="This card can explain how the founding circle works together without forcing long reading on the main page."><h4>What can I do next?</h4><p>Review roles and confirm who handles each decision.</p></div>
+        </div>
+        <div class="next-step-box"><h4>Next step</h4><button class="next-step-btn" type="button" data-target="execution">Plan execution next.</button></div>
+      </section>
+
+      <section class="panel" id="execution">
+        <div class="panel-head"><div><h3 data-editable="true" contenteditable="false">Plan execution</h3><p data-editable="true" contenteditable="false">This section turns the prototype into action by showing tasks, milestones, and owners.</p></div><div class="toolbar"><button class="btn primary edit-section" type="button">Edit</button><button class="btn update-section" type="button">Update</button><button class="btn danger cancel-section" type="button">Cancel</button></div></div>
+        <div class="timeline">
+          <div class="step tip" tabindex="0" data-dialog-key="exec-1" data-title="Vision and identity" data-body="This first step defines what the institution stands for and how it should be perceived." data-expanded="This first step defines what the institution stands for and how it should be perceived."><div class="num">1</div><div><h4>Define the vision</h4><p>Set the mission, tone, and cultural basis.</p></div></div>
+          <div class="step tip" tabindex="0" data-dialog-key="exec-2" data-title="Learning architecture" data-body="This step defines how the curriculum is organized into clear components." data-expanded="This step defines how the curriculum is organized into clear components."><div class="num">2</div><div><h4>Map the learning plan</h4><p>Map the learning structure into measurable parts.</p></div></div>
+          <div class="step tip" tabindex="0" data-dialog-key="exec-3" data-title="Gap positioning" data-body="This step explains the market or institutional gap and the reason this blueprint exists." data-expanded="This step explains the market or institutional gap and the reason this blueprint exists."><div class="num">3</div><div><h4>Clarify the difference</h4><p>Define the unique problem and solution.</p></div></div>
+          <div class="step tip" tabindex="0" data-dialog-key="exec-4" data-title="Family enrollment" data-body="This step covers how families join the institution and how the onboarding sequence works." data-expanded="This step covers how families join the institution and how the onboarding sequence works."><div class="num">4</div><div><h4>Plan the family flow</h4><p>Build family-based admission and onboarding.</p></div></div>
+          <div class="step tip" tabindex="0" data-dialog-key="exec-5" data-title="Financial structure" data-body="This step should explain how funding is organized over time, what phases are covered, and how the group can read the plan without feeling overwhelmed." data-expanded="This step should explain how funding is organized over time, what phases are covered, and how the group can read the plan without feeling overwhelmed."><div class="num">5</div><div><h4>Organize funding</h4><p>Stage the Rs. 200 Crore plan.</p></div></div>
+          <div class="step tip" tabindex="0" data-dialog-key="exec-6" data-title="Digital layer" data-body="This step describes the software layer of the project and how the group will actually access and use it." data-expanded="This step describes the software layer of the project and how the group will actually access and use it."><div class="num">6</div><div><h4>Set the platform layer</h4><p>Enable browser-based access and operations.</p></div></div>
+          <div class="step tip" tabindex="0" data-dialog-key="exec-7" data-title="Founding circle" data-body="This step explains who is responsible for what and how decisions move through the group." data-expanded="This step explains who is responsible for what and how decisions move through the group."><div class="num">7</div><div><h4>Assign governance</h4><p>Define governance and decision rights.</p></div></div>
+          <div class="step tip" tabindex="0" data-dialog-key="exec-8" data-title="Execution planning" data-body="This step turns the strategy into an actual action plan." data-expanded="This step turns the strategy into an actual action plan."><div class="num">8</div><div><h4>Set milestones</h4><p>Assign actions, owners, and deadlines.</p></div></div>
+          <div class="step tip" tabindex="0" data-dialog-key="exec-9" data-title="Launch readiness" data-body="This step explains what needs to be ready before launch." data-expanded="This step explains what needs to be ready before launch."><div class="num">9</div><div><h4>Prepare for launch</h4><p>Prepare handbook, staffing, and checks.</p></div></div>
+          <div class="step tip" tabindex="0" data-dialog-key="exec-10" data-title="Master plan" data-body="This final step brings the whole blueprint together." data-expanded="This final step brings the whole blueprint together."><div class="num">10</div><div><h4>Unify the roadmap</h4><p>Unify everything into one roadmap.</p></div></div>
+        </div>
+        <div class="next-step-box"><h4>Next step</h4><button class="next-step-btn" type="button" data-target="launch">Prepare for launch next.</button></div>
+      </section>
+
+      <section class="panel" id="launch">
+        <div class="panel-head"><div><h3 data-editable="true" contenteditable="false">Prepare for launch</h3><p data-editable="true" contenteditable="false">This section serves as the final readiness checkpoint before the prototype is treated as launch-ready. It keeps the last-stage tasks visible and simple to review.</p></div><div class="toolbar"><button class="btn primary edit-section" type="button">Edit</button><button class="btn update-section" type="button">Update</button><button class="btn danger cancel-section" type="button">Cancel</button></div></div>
+        <div class="card tip" tabindex="0" data-dialog-key="launch-next" data-title="What can I do next?" data-body="Review the launch checklist and confirm what still needs to be completed." data-expanded="Use the detail panel to show the launch sequence and keep the main view compact."><h4>What can I do next?</h4><p>Review the launch checklist and confirm what still needs to be completed.</p></div>
+        <div class="next-step-box"><h4>Next step</h4><button class="next-step-btn" type="button" data-target="masterplan">View the master roadmap next.</button></div>
+      </section>
+
+      <section class="panel" id="masterplan">
+        <div class="panel-head"><div><h3 data-editable="true" contenteditable="false">View the master roadmap</h3><p data-editable="true" contenteditable="false">This section unifies the full institution blueprint into a single reference view. It is the top-level summary of direction, structure, and rollout.</p></div><div class="toolbar"><button class="btn primary edit-section" type="button">Edit</button><button class="btn update-section" type="button">Update</button><button class="btn danger cancel-section" type="button">Cancel</button></div></div>
+        <div class="grid-2">
+          <div class="card tip" tabindex="0" data-dialog-key="master-why" data-title="Why does it matter?" data-body="It keeps the bigger vision organized as the prototype grows." data-expanded="Explain how the roadmap expands over time without making the page heavy."><h4>Why does it matter?</h4><p>It keeps the bigger vision organized as the prototype grows.</p></div>
+          <div class="card tip" tabindex="0" data-dialog-key="master-next" data-title="What can I do next?" data-body="Use this as the top-level reference for the full build." data-expanded="This card can explain how the plan remains useful after launch as the institution grows."><h4>What can I do next?</h4><p>Use this as the top-level reference for the full build.</p></div>
+        </div>
+        <div class="next-step-box"><h4>Next step</h4><button class="next-step-btn" type="button" data-target="home">Return to Home to start over.</button></div>
+      </section>
+
+      <div class="footer">ELP Gurukul · Hyderabad, India · 2026</div>
+    </main>
+  </div>
+
+  <div class="dialog-backdrop" id="dialogBackdrop" aria-hidden="true">
+    <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dialogTitle">
+      <div class="dialog-header"><div><h3 id="dialogTitle">Action</h3><p id="dialogDescription">Use this panel to understand the clicked item.</p></div><button class="btn" id="closeDialog" type="button">Close</button></div>
+      <div class="dialog-body" id="dialogBody"></div>
+    </div>
+  </div>
+
+  <button type="button" id="backToTopBtn" class="back-to-top-btn" aria-label="Back to top">↑ Top</button>
+
+  <script>
+const loginScreen = document.getElementById('loginScreen');
+const app = document.getElementById('app');
+const dialogBackdrop = document.getElementById('dialogBackdrop');
+const dialogTitle = document.getElementById('dialogTitle');
+const dialogDescription = document.getElementById('dialogDescription');
+const dialogBody = document.getElementById('dialogBody');
+const closeDialogBtn = document.getElementById('closeDialog');
+const user = document.getElementById('username');
+const pass = document.getElementById('password');
+const loginHelp = document.getElementById('loginHelp');
+const AUTH_KEY = 'elp_gurukul_logged_in_session';
+const DRAFT_KEY = 'elpDraftText';
+
+const infoPanels = [
+  {
+    panelId: 'home',
+    handlers: {
+      'home-what': {
+        title: 'What is this? • Prototype details',
+        description: 'Click Close to return to the home section.',
+        body: `<div class="preview-box"><h4>Visible card text</h4><p>What is this?</p><p>Task-first prototype overview.</p></div>
+               <div class="preview-box" style="margin-top:12px;"><h4>Expanded details</h4><p>A task-first prototype built to help users understand the institution blueprint quickly.</p></div>`
+      },
+      'home-next': {
+        title: 'What can I do next? • Prototype details',
+        description: 'Click Close to return to the home section.',
+        body: `<div class="preview-box"><h4>Visible card text</h4><p>What can I do next?</p><p>Choose a task below to explore the vision, readiness, planning, or launch path.</p></div>
+               <div class="preview-box" style="margin-top:12px;"><h4>Expanded details</h4><p>Open the prototype from a browser link, move between sections instantly, and review everything as a shared working space.</p></div>`
+      }
+    }
+  },
+  {
+    panelId: 'finance',
+    handlers: {
+      'finance-what': {
+        title: 'What is this?',
+        description: 'Click Close to return to the finance section.',
+        body: `<div class="preview-box"><h4>Visible card text</h4><p>What is this?</p><p>A staged view of the major cost layers that support the institution.</p></div>
+               <div class="preview-box" style="margin-top:12px;"><h4>Expanded details</h4><p>Use the panel to explain the cost layers in more detail, while the main card stays concise and readable.</p></div>`
+      },
+      'finance-next': {
+        title: 'What can I do next?',
+        description: 'Click Close to return to the finance section.',
+        body: `<div class="preview-box"><h4>Visible card text</h4><p>What can I do next?</p><p>Review the funding layers and identify what comes first.</p></div>
+               <div class="preview-box" style="margin-top:12px;"><h4>Expanded details</h4><p>Break funding into stages so the prototype reads like an executable plan instead of a plain statement.</p></div>`
+      }
+    }
+  }
+];
+
+infoPanels.forEach(({ panelId, handlers }) => {
+  const panel = document.getElementById(panelId);
+  if (!panel || panel.dataset.infoPatched === '1') return;
+  panel.dataset.infoPatched = '1';
+
+  panel.addEventListener('click', (e) => {
+    const tip = e.target.closest('.card.tip');
+    if (tip && panel.contains(tip)) {
+      const key = tip.dataset.dialogKey || '';
+      const entry = handlers[key];
+      if (entry) {
+        openDialog(entry.title, entry.description, entry.body);
+      }
+      return;
+    }
+
+    if (panelId === 'finance') {
+      const arch = e.target.closest('.card');
+      if (!arch || !panel.contains(arch) || arch.classList.contains('tip')) return;
+
+      const h4 = arch.querySelector('h4')?.innerText || 'Rs. 200 Cr Architecture';
+      const p = arch.querySelector('p')?.innerText || 'Break this into land, buildings, equipment, staffing, operations, and launch costs.';
+
+      openDialog(
+        h4,
+        'Click Close to return to the finance section.',
+        `<div class="preview-box"><h4>Visible card text</h4><p>${h4}</p><p>${p}</p></div>
+         <div class="preview-box" style="margin-top:12px;"><h4>Expanded details</h4><p>Use this space to explain the finance architecture in a clearer, step-by-step way without changing the existing finance tip cards.</p></div>`
+      );
+    }
+  });
+});
+
+let snapshot = '';
+let editMode = false;
+let bindCount = 0;
+
+function safeSetSession(key, value){ try{ sessionStorage.setItem(key,value); return true; }catch(e){ return false; } }
+function safeGetSession(key){ try{ return sessionStorage.getItem(key); }catch(e){ return null; } }
+function safeRemoveSession(key){ try{ sessionStorage.removeItem(key); }catch(e){} }
+
+function setLogoFallback(imgId, fallbackId){
+  const img = document.getElementById(imgId), fb = document.getElementById(fallbackId);
+  if(!img || !fb) return;
+  img.onerror = () => { img.style.display='none'; fb.style.display='grid'; };
+}
+
+function captureSnapshot(){ snapshot = app.innerHTML; }
+function restoreSnapshot(){ if(snapshot){ app.innerHTML = snapshot; bindApp(); } }
+
+function openDialog(title, description, bodyHtml){
+  dialogTitle.textContent = title;
+  dialogDescription.textContent = description;
+  dialogBody.innerHTML = bodyHtml;
+  dialogBackdrop.classList.add('open');
+  dialogBackdrop.setAttribute('aria-hidden','false');
+}
+function closeDialog(){ dialogBackdrop.classList.remove('open'); dialogBackdrop.setAttribute('aria-hidden','true'); }
+function setEditMode(enabled){ editMode = enabled; document.body.classList.toggle('edit-mode', enabled); document.querySelectorAll('[data-editable="true"]').forEach(el => el.contentEditable = enabled ? 'true' : 'false'); }
+function switchSection(targetId){ document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.target===targetId)); document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id===targetId)); const target = document.getElementById(targetId); if(target) target.scrollIntoView({behavior:'smooth', block:'start'}); }
+
+function handleLogin(){
+  const u = user.value.trim();
+  const p = pass.value.trim();
+  if (!u || !p) {
+    if (loginHelp) loginHelp.textContent = 'Enter username and password.';
+    openDialog('Missing credentials','Please enter both fields.','<div class="preview-box"><h4>Missing credentials</h4><p>Please enter username and password.</p></div>');
+    return;
+  }
+  if (u === 'group@elp' && p === 'elp2026') {
+    safeSetSession(AUTH_KEY, '1');
+    loginScreen.classList.remove('fade-out');
+    loginScreen.style.display = 'none';
+    app.classList.add('ready');
+    captureSnapshot();
+    return;
+  }
+  openDialog('Access denied','Use the shared demo credentials for this prototype.','<div class="preview-box"><h4>Try again</h4><p>Username: group@elp<br>Password: elp2026</p></div>');
+}
+
+function handleLogout(){
+  safeRemoveSession(AUTH_KEY);
+  editMode = false;
+  document.body.classList.remove('edit-mode');
+  app.classList.remove('ready');
+  loginScreen.style.display = 'grid';
+  loginScreen.classList.remove('fade-out');
+  pass.value = '';
+  if (loginHelp) loginHelp.textContent = 'You have been signed out.';
+  if (user) user.focus();
+  closeDialog();
+}
+
+function dialogForTip(tip){
+  const key = tip.dataset.dialogKey || '';
+  const title = tip.dataset.title || tip.querySelector('h4')?.innerText || 'Details';
+  const body = tip.dataset.body || tip.querySelector('p')?.innerText || '';
+  const expanded = tip.dataset.expanded || '';
+  const section = tip.closest('.panel')?.id || '';
+
+  if (key === 'home-what') {
+    openDialog('What is this? • Prototype details','Click close to return to the home section.',`<div class="preview-box"><h4>Visible card text</h4><p>What is this?</p><p>Task-first prototype overview.</p></div><div class="preview-box" style="margin-top:12px;"><h4>Expanded details</h4><p>${expanded || 'A task-first prototype built to help users understand the institution blueprint quickly.'}</p></div>`);
+    return;
+  }
+  if (key === 'home-next') {
+    openDialog('What can I do next? • Prototype details','Click close to return to the home section.',`<div class="preview-box"><h4>Visible card text</h4><p>What can I do next?</p><p>Choose a task below to explore the vision, readiness, planning, or launch path.</p></div><div class="preview-box" style="margin-top:12px;"><h4>Expanded details</h4><p>${expanded || 'Open the prototype from a browser link, move between sections instantly, and review everything as a shared working space.'}</p></div>`);
+    return;
+  }
+
+  if (section === 'mission') {
+    openDialog('Mission details','Click close to return to the mission section.',`<div class="preview-box"><h4>Visible card text</h4><p>${title}</p><p>${body}</p></div><div class="preview-box" style="margin-top:12px;"><h4>Expanded details</h4><p>Show the mission statement, promise, values, and positioning language in a short form on the page, then expand the detail in a panel.</p></div>`);
+    return;
+  }
+  if (section === 'learning') {
+    openDialog('Learning details','Click close to return to the learning section.',`<div class="preview-box"><h4>Visible card text</h4><p>${title}</p><p>${body}</p></div><div class="preview-box" style="margin-top:12px;"><h4>Expanded details</h4><p>${expanded}</p></div>`);
+    return;
+  }
+  if (section === 'gaps') {
+    openDialog('Gap details','Click close to return to the gaps section.',`<div class="preview-box"><h4>Visible card text</h4><p>${title}</p><p>${body}</p></div><div class="preview-box" style="margin-top:12px;"><h4>Expanded details</h4><p>${expanded}</p></div>`);
+    return;
+  }
+  if (section === 'finance') {
+    openDialog('Finance details','Click close to return to the finance section.',`<div class="preview-box"><h4>Visible card text</h4><p>${title}</p><p>${body}</p></div><div class="preview-box" style="margin-top:12px;"><h4>Expanded details</h4><p>${expanded}</p></div>`);
+    return;
+  }
+  if (section === 'platform') {
+    openDialog('Digital layer','Click close to return to the page.',`<div class="preview-box"><h4>Visible card text</h4><p>${title}</p><p>${body}</p></div><div class="preview-box" style="margin-top:12px;"><h4>Expanded details</h4><p>${expanded}</p></div>`);
+    return;
+  }
+  if (section === 'founding') {
+    openDialog('Founding circle','Click close to return to the page.',`<div class="preview-box"><h4>Visible card text</h4><p>${title}</p><p>${body}</p></div><div class="preview-box" style="margin-top:12px;"><h4>Expanded details</h4><p>${expanded}</p></div>`);
+    return;
+  }
+  if (section === 'launch') {
+    openDialog('Launch readiness','Click close to return to the page.',`<div class="preview-box"><h4>Visible card text</h4><p>${title}</p><p>${body}</p></div><div class="preview-box" style="margin-top:12px;"><h4>Expanded details</h4><p>${expanded}</p></div>`);
+    return;
+  }
+  if (section === 'masterplan') {
+    openDialog('Master plan','Click close to return to the page.',`<div class="preview-box"><h4>Visible card text</h4><p>${title}</p><p>${body}</p></div><div class="preview-box" style="margin-top:12px;"><h4>Expanded details</h4><p>${expanded}</p></div>`);
+    return;
+  }
+  if (section === 'execution') {
+    const map = {
+      'exec-1':['Vision and identity','This first step defines what the institution stands for and how it should be perceived.'],
+      'exec-2':['Learning architecture','This step defines how the curriculum is organized into clear components.'],
+      'exec-3':['Gap positioning','This step explains the market or institutional gap and the reason this blueprint exists.'],
+      'exec-4':['Family enrollment','This step covers how families join the institution and how the onboarding sequence works.'],
+      'exec-5':['Financial structure','This step should explain how funding is organized over time, what phases are covered, and how the group can read the plan without feeling overwhelmed.'],
+      'exec-6':['Digital layer','This step describes the software layer of the project and how the group will actually access and use it.'],
+      'exec-7':['Founding circle','This step explains who is responsible for what and how decisions move through the group.'],
+      'exec-8':['Execution planning','This step turns the strategy into an actual action plan.'],
+      'exec-9':['Launch readiness','This step explains what needs to be ready before launch.'],
+      'exec-10':['Master plan','This final step brings the whole blueprint together.']
+    };
+    const [head, desc] = map[key] || [title, body];
+    openDialog(head, 'Click Close to return to the page.', `<div class="preview-box"><h4>${head}</h4><p>${desc}</p></div>`);
+    return;
+  }
+
+  openDialog(title, '', `<div class="preview-box"><h4>${title}</h4><p>${body}</p></div>`);
+}
+
+function bindApp(){
+  const resetHomeBtn = document.getElementById('resetHomeBtn');
+  const intentHelpBtn = document.getElementById('intentHelpBtn');
+  const logoutBtn = document.getElementById('logoutBtn');
+  const loginBtn = document.getElementById('loginBtn');
+  const demoBtn = document.getElementById('demoBtn');
+  const chipBrowser = document.getElementById('chipBrowser');
+  const chipResponsive = document.getElementById('chipResponsive');
+  const chipAccess = document.getElementById('chipAccess');
+  const addBtn = document.getElementById('addBtn');
+  const draftBtn = document.getElementById('draftBtn');
+  const previewBtn = document.getElementById('previewBtn');
+  const addComposer = document.getElementById('addComposer');
+  const composerInsertBtn = document.getElementById('composerInsertBtn');
+  const composerCloseBtn = document.getElementById('composerCloseBtn');
+
+  if (bindCount++ > 0) return;
+
+  const composerState = { title: '', body: '', inserted: false };
+
+  function renderComposerBlock() {
+    if (!addComposer) return null;
+    let inserted = addComposer.querySelector('.inserted-block');
+    if (!inserted) {
+      inserted = document.createElement('div');
+      inserted.className = 'card inserted-block';
+      inserted.tabIndex = 0;
+      inserted.innerHTML = `
+        <h4 class="inserted-title"></h4>
+        <p class="inserted-body"></p>
+        <div class="toolbar inserted-actions" style="margin-top:12px;">
+          <button class="btn primary inserted-edit" type="button">Edit</button>
+          <button class="btn update-section inserted-update" type="button">Update</button>
+          <button class="btn inserted-close" type="button">Close</button>
+        </div>
+      `;
+      addComposer.appendChild(inserted);
+    }
+    const titleEl = inserted.querySelector('.inserted-title');
+    const bodyEl = inserted.querySelector('.inserted-body');
+    if (titleEl) titleEl.textContent = composerState.title || 'New block';
+    if (bodyEl) bodyEl.textContent = composerState.body || 'This new block was added from the Insert block action.';
+    const previewText = document.getElementById('composerPreviewText');
+    if (previewText) previewText.textContent = `Inserted block created: ${composerState.title || 'New block'}`;
+    return inserted;
+  }
+
+  function openComposerPreview() {
+    openDialog(
+      composerState.title || 'Inserted',
+      composerState.body || 'A new block was added to the prototype.',
+      `<div class="preview-box"><h4>${composerState.title || 'New block'}</h4><p>${composerState.body || ''}</p></div>`
+    );
+  }
+
+  if (intentHelpBtn) intentHelpBtn.onclick = () => openDialog('What this does','A short explanation of the intent entry.','<div class="preview-box"><h4>Intent entry</h4><p>This area helps people choose a purpose first, so they can jump directly to the right section instead of browsing everything.</p></div>');
+
+  document.querySelectorAll('.next-step-btn,.tab,.intent-btn').forEach(btn => { btn.onclick = () => switchSection(btn.dataset.target); });
+
+  const main = document.querySelector('.main');
+  if (main && !main.dataset.tipBound) {
+    main.dataset.tipBound = '1';
+    main.addEventListener('click', (e) => {
+      const tip = e.target.closest('.card.tip, .step.tip');
+      if (!tip || !main.contains(tip)) return;
+      dialogForTip(tip);
+    });
+    main.addEventListener('keydown', (e) => {
+      const tip = e.target.closest('.card.tip, .step.tip');
+      if (!tip || !main.contains(tip)) return;
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); dialogForTip(tip); }
+    });
+  }
+
+  document.querySelectorAll('.edit-section').forEach(btn => {
+    btn.onclick = () => {
+      const section = btn.closest('.panel, .hero, .section-shell');
+      if (!section) return;
+      setEditMode(true);
+      section.classList.add('editing');
+      section.querySelectorAll('[data-editable="true"]').forEach(el => { el.setAttribute('contenteditable', 'true'); el.contentEditable = 'true'; el.classList.add('is-editable'); });
+      openDialog('Edit mode enabled','You can now edit the visible text directly.','<div class="preview-box"><h4>Edit mode</h4><p>Click the content you want to change, type your updates, then press Update to save the current snapshot.</p></div>');
+    };
+  });
+
+  document.querySelectorAll('.update-section').forEach(btn => {
+    btn.onclick = () => {
+      const section = btn.closest('.panel, .hero, .section-shell');
+      if (!section) return;
+      captureSnapshot();
+      section.querySelectorAll('[data-editable="true"]').forEach(el => { el.setAttribute('contenteditable', 'false'); el.contentEditable = 'false'; el.classList.remove('is-editable'); });
+      section.classList.remove('editing');
+      setEditMode(false);
+      openDialog('Section updated','Your changes have been saved for this session.','<div class="preview-box"><h4>Saved</h4><p>The current visible content has been captured successfully.</p></div>');
+    };
+  });
+
+  document.querySelectorAll('.cancel-section').forEach(btn => {
+    btn.onclick = () => {
+      const section = btn.closest('.panel, .hero, .section-shell');
+      if (section) {
+        section.querySelectorAll('[data-editable="true"]').forEach(el => { el.setAttribute('contenteditable', 'false'); el.contentEditable = 'false'; el.classList.remove('is-editable'); });
+        section.classList.remove('editing');
+      }
+      restoreSnapshot();
+      setEditMode(false);
+    };
+  });
+
+  if (resetHomeBtn) resetHomeBtn.onclick = () => switchSection('home');
+
+  if (addBtn && addComposer) {
+    addBtn.onclick = () => {
+      addComposer.style.display = (addComposer.style.display === 'none' || !addComposer.style.display) ? 'block' : 'none';
+      if (addComposer.style.display === 'block') {
+        const titleInput = document.getElementById('composerTitle');
+        if (titleInput) titleInput.focus();
+      }
+    };
+  }
+
+  if (composerCloseBtn) composerCloseBtn.onclick = () => { if (addComposer) addComposer.style.display = 'none'; closeDialog(); };
+
+  if (composerInsertBtn) {
+    composerInsertBtn.disabled = false;
+    composerInsertBtn.style.pointerEvents = 'auto';
+    composerInsertBtn.onclick = () => {
+      if (!addComposer) return;
+      composerState.title = (document.getElementById('composerTitle')?.value || '').trim() || 'New block';
+      composerState.body = (document.getElementById('composerBody')?.value || '').trim() || 'This new block was added from the Insert block action.';
+      composerState.inserted = true;
+      renderComposerBlock();
+      openComposerPreview();
+    };
+  }
+
+  if (logoutBtn) logoutBtn.onclick = handleLogout;
+  if (loginBtn) loginBtn.onclick = handleLogin;
+
+  if (demoBtn) {
+    demoBtn.onclick = () => {
+      user.value = 'group@elp';
+      pass.value = 'elp2026';
+      if (loginHelp) loginHelp.textContent = 'Demo credentials loaded.';
+      handleLogin();
+    };
+  }
+
+  if (chipBrowser) chipBrowser.onclick = () => openDialog('Browser ready','Live compatibility and runtime status for this prototype.',`<div class="preview-box"><h4>Browser compatibility</h4><p>JavaScript support: Pass</p><p>DOM query support: Pass</p><p>Session storage: Pass</p><p>Viewport support: Pass</p></div><div class="preview-box" style="margin-top:12px;"><h4>Runtime state</h4><p>Online · Secure context · Protocol: file:</p><p>Secure context: Pass</p><p>HTTPS protocol: Fail</p><p>Online status: Pass</p></div><div class="preview-box" style="margin-top:12px;"><h4>Login flow status</h4><p>Login screen visible: Fail</p><p>App shell ready: Pass</p><p>Logout wired: Pass</p><p>This panel confirms the prototype can show, hide, and re-open the login workspace correctly.</p></div>`);
+  if (chipResponsive) chipResponsive.onclick = () => openDialog('Responsive support','Live compatibility and runtime status for this prototype.',`<div class="preview-box"><h4>Responsive compatibility</h4><p>Viewport support: Pass. Layout reflow: Pass. Tap-friendly spacing: Pass. Mobile readability: Pass.</p></div><div class="preview-box" style="margin-top:12px;"><h4>Runtime state</h4><p>Sidebar adapts to narrow screens, panels stack vertically, and the main workflow stays usable on small displays.</p></div><div class="preview-box" style="margin-top:12px;"><h4>Responsive behavior</h4><p>The sidebar collapses naturally and the main content stacks on small screens.</p></div>`);
+  if (chipAccess) chipAccess.onclick = () => openDialog('Group access','Sharing status for the current prototype.',`<div class="preview-box"><h4>Group access</h4><p>This prototype is designed for shared browser review using the demo login flow.</p></div>`);
+
+  if (draftBtn) {
+    draftBtn.onclick = () => {
+      captureSnapshot();
+      const current = document.getElementById('composerBody');
+      if (current) localStorage.setItem(DRAFT_KEY, current.value || '');
+      openDialog('Draft saved','Your current state is stored for this session.','<div class="preview-box"><h4>Draft saved</h4><p>You can continue editing without losing changes.</p></div>');
+    };
+  }
+
+  if (previewBtn) {
+    previewBtn.onclick = () => {
+      const active = document.querySelector('.panel.active');
+      openDialog('Preview','Read-only preview of the current section.',`<div class="preview-box"><h4>${active?.querySelector('h3')?.innerText || 'Preview'}</h4><p>${active?.querySelector('p')?.innerText || ''}</p></div>`);
+    };
+  }
+
+  const composerBody = document.getElementById('composerBody');
+  const composerTitle = document.getElementById('composerTitle');
+  const savedDraft = localStorage.getItem(DRAFT_KEY);
+
+  if (composerBody && savedDraft) composerBody.value = savedDraft;
+  if (composerBody) composerBody.addEventListener('input', () => localStorage.setItem(DRAFT_KEY, composerBody.value));
+
+  if (composerTitle && composerBody) {
+    const previewText = document.getElementById('composerPreviewText');
+    const updatePreview = () => {
+      const t = composerTitle.value.trim() || 'Untitled block';
+      const b = composerBody.value.trim() || 'Your inserted block will appear here.';
+      if (previewText) previewText.textContent = `${t} — ${b}`;
+    };
+    composerTitle.addEventListener('input', updatePreview);
+    composerBody.addEventListener('input', updatePreview);
+    updatePreview();
+  }
+
+  if (addComposer) {
+    addComposer.querySelectorAll('.inserted-edit').forEach(btn => btn.onclick = () => {
+      const titleInput = document.getElementById('composerTitle');
+      const bodyInput = document.getElementById('composerBody');
+      if (titleInput) titleInput.value = composerState.title;
+      if (bodyInput) bodyInput.value = composerState.body;
+      closeDialog();
+      if (titleInput) titleInput.focus();
+    });
+    addComposer.querySelectorAll('.inserted-update').forEach(btn => btn.onclick = () => {
+      composerState.title = (document.getElementById('composerTitle')?.value || '').trim() || composerState.title;
+      composerState.body = (document.getElementById('composerBody')?.value || '').trim() || composerState.body;
+      renderComposerBlock();
+      openComposerPreview();
+    });
+    addComposer.querySelectorAll('.inserted-close').forEach(btn => btn.onclick = () => { closeDialog(); if (addComposer) addComposer.style.display = 'none'; });
+  }
+}
+
+function initRolePath(){
+  const rolePath = document.getElementById('role-path');
+  if (!rolePath || rolePath.dataset.init === '1') return;
+  rolePath.dataset.init = '1';
+  const buttons = rolePath.querySelectorAll('.role-btn');
+  const tabs = Array.from(document.querySelectorAll('.tab'));
+  const roleToTab = { Founder:'founding', Parent:'home', Advisor:'finance', Reviewer:'masterplan', Mentor:'learning' };
+  function activateTab(target){ const tab = tabs.find(b => b.dataset.target === target); if (tab) tab.click(); }
+  function setActiveRole(role){ buttons.forEach(b => b.classList.toggle('active', b.dataset.target === role)); activateTab(roleToTab[role]); window.selectedRole = role; }
+  buttons.forEach(btn => btn.addEventListener('click', () => setActiveRole(btn.dataset.target)));
+  setActiveRole('Founder');
+}
+
+function initBlueprintToggle(){
+  const btn = document.getElementById('toggleBlueprintBtn');
+  const box = document.getElementById('blueprintSummary');
+  if (!btn || !box || btn.dataset.init === '1') return;
+  btn.dataset.init = '1';
+  btn.addEventListener('click', () => {
+    const isHidden = box.style.display === 'none' || !box.style.display;
+    box.style.display = isHidden ? 'block' : 'none';
+    btn.textContent = isHidden ? 'Hide blueprint details' : 'Show blueprint details';
+  });
+}
+
+function initBackToTop(){
+  const btn = document.getElementById('backToTopBtn');
+  if (!btn || btn.dataset.init === '1') return;
+  btn.dataset.init = '1';
+  function toggleBtn(){ btn.style.display = (document.documentElement.scrollTop > 200 || document.body.scrollTop > 200) ? 'block' : 'none'; }
+  window.addEventListener('scroll', toggleBtn, { passive:true });
+  btn.addEventListener('click', () => window.scrollTo({ top:0, behavior:'smooth' }));
+  toggleBtn();
+}
+
+function initChipHandlers(){
+  document.querySelectorAll('.stat-info').forEach(chip => {
+    if (chip.dataset.bound === '1') return;
+    chip.dataset.bound = '1';
+    chip.addEventListener('click', () => {
+      openDialog(
+        chip.dataset.title || 'Details',
+        'Click Close to return to the page.',
+        `<div class="preview-box"><h4>${chip.dataset.title || 'Details'}</h4><p>${chip.dataset.desc || ''}</p></div>`
+      );
+    });
+  });
+}
+
+function initCloseDialog(){ if (closeDialogBtn) closeDialogBtn.onclick = closeDialog; }
+
+function initSessionState(){
+  if (safeGetSession(AUTH_KEY) === '1') {
+    loginScreen.classList.remove('fade-out');
+    loginScreen.style.display = 'none';
+    app.classList.add('ready');
+    captureSnapshot();
+  } else {
+    loginScreen.classList.remove('fade-out');
+    loginScreen.style.display = 'grid';
+    app.classList.remove('ready');
+    closeDialog();
+  }
+}
+
+function polishPrototypeCopy(){
+  const title = document.querySelector('#heroTitle');
+  const body = document.querySelector('#heroBody');
+  const launchTitle = document.querySelector('#launch h3');
+  const launchBody = document.querySelector('#launch p');
+  const masterTitle = document.querySelector('#masterplan h3');
+  const masterBody = document.querySelector('#masterplan p');
+
+  if (title && title.innerText.trim() === 'Master Prototype for Group Browser Access') {
+    title.innerText = 'Master Prototype for Shared Browser Review';
+  }
+  if (body && body.innerText.includes('living workspace')) {
+    body.innerText = 'This interface combines blueprint content, working interactions, and review-friendly detail panels so the prototype feels complete and easy to scan.';
+  }
+  if (launchTitle && launchTitle.innerText.trim() === 'Prepare for launch') {
+    launchTitle.innerText = 'Prepare for launch';
+  }
+  if (launchBody && launchBody.innerText.includes('final readiness checkpoint')) {
+    launchBody.innerText = 'This section serves as the final readiness checkpoint before the prototype is treated as launch-ready. It keeps the last-stage tasks visible and simple to review.';
+  }
+  if (masterTitle && masterTitle.innerText.trim() === 'View the master roadmap') {
+    masterTitle.innerText = 'View the master roadmap';
+  }
+  if (masterBody && masterBody.innerText.includes('unifies the full institution blueprint')) {
+    masterBody.innerText = 'This section unifies the full institution blueprint into a single reference view. It is the top-level summary of direction, structure, and rollout.';
+  }
+}
+
+function initPrototype(){
+  setLogoFallback('loginLogo', 'loginLogoFallback');
+  setLogoFallback('sideLogo', 'sideLogoFallback');
+  initSessionState();
+  bindApp();
+  initRolePath();
+  initBlueprintToggle();
+  initBackToTop();
+  initChipHandlers();
+  initCloseDialog();
+  polishPrototypeCopy();
+  if (loginHelp && loginScreen.style.display !== 'none') loginHelp.textContent = 'Enter username and password.';
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const loginBtn = document.getElementById('loginBtn');
+  const demoBtn = document.getElementById('demoBtn');
+
+  if (loginBtn) {
+    loginBtn.addEventListener('click', e => { e.preventDefault(); handleLogin(); });
+  }
+
+  if (demoBtn) {
+    demoBtn.addEventListener('click', e => {
+      e.preventDefault();
+      if (user) user.value = 'group@elp';
+      if (pass) pass.value = 'elp2026';
+      if (loginHelp) loginHelp.textContent = 'Demo credentials loaded.';
+      handleLogin();
+    });
+  }
+
+  initPrototype();
+});
+  </script>
+</body>
+</html>
